@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Minimal AngularJS App</title>
+  <title>TrainO</title>
 </head>
 <body>
   <div ng-controller="mainCtrl">
@@ -69,7 +69,7 @@
        y="0" />
     <g ng-repeat="city_random in sst.city_randoms">
       <ellipse ng-attr-cx="{{city_random.x}}" ng-attr-cy="{{city_random.y}}" rx="1" ry="1" />
-      <text ng-attr-x="{{city_random.x}}" ng-attr-y="{{city_random.y}}" class="small">{{sst.city_names[$index]}}</text>
+      <text ng-attr-x="{{city_random.x + 2}}" ng-attr-y="{{city_random.y}}" class="small">{{sst.city_names[$index]}}</text>
     </g>
   </g>
   
