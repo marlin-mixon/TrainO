@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Minimal AngularJS App</title>
+</head>
+<body>
+  <div ng-controller="mainCtrl">
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="210mm"
+   height="297mm"
+   viewBox="0 0 210 297"
+   version="1.1"
+   id="svg8"
+   inkscape:version="0.92.1 r15371"
+   sodipodi:docname="new_traino.svg">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.64230499"
+     inkscape:cx="155.53201"
+     inkscape:cy="561.25984"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1824"
+     inkscape:window-height="920"
+     inkscape:window-x="0"
+     inkscape:window-y="36"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <style>
+    .small { font:  6px sans-serif; }
+  </style>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       style="fill:#99ff99;fill-opacity:1;stroke:#050000;stroke-width:0.72415805;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect10"
+       width="201"
+       height="291"
+       x="0"
+       y="0" />
+    <g ng-repeat="city_random in sst.city_randoms">
+      <ellipse ng-attr-cx="{{city_random.x}}" ng-attr-cy="{{city_random.y}}" rx="1" ry="1" />
+      <text ng-attr-x="{{city_random.x}}" ng-attr-y="{{city_random.y}}" class="small">{{sst.city_names[$index]}}</text>
+    </g>
+  </g>
+  
+</svg>
+
+    
+  </div>
+  
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.6/angular.min.js" type="text/javascript"></script>
+  <script>
+    // Bootstrap angular module `app`
+    angular.element(document.body).ready(function () {
+      angular.bootstrap(document.body, ['app'])
+    })
+    // Declare module `app`, angular dependency modules go here
+    var app = angular.module('app', [])
+    
+    app.controller("mainCtrl", function($scope) {
+      $scope.sst = {};
+
+      $scope.unique_random = function(range, array_size, array, array2) {  // array2 is required but set to [] if not needed
+        if (range < (array_size + array2.length) ){
+          return;
+        }
+        for (let i=0; i<array_size; i++) {
+          ran = Math.trunc(Math.random()*range);
+          let max = 0;
+          while ( (array.includes(ran) || array2.includes(ran)) && max < 10) {
+            ran = Math.trunc(Math.random()*range);
+            max++;
+          }
+          array.push(ran);
+        }
+      }  
+
+      $scope.init_city_randoms = function() {
+        for (let i=0; i<$scope.sst.N_CITIES; i++) {
+          $scope.sst.city_randoms[i] = {};
+          let this_city = $scope.sst.city_randoms[i];
+          this_city.production = [];
+          this_city.name = $scope.sst.city_names[i]
+          //alert(this_city.production.length);
+          $scope.unique_random($scope.sst.N_ITEM_TYPES, $scope.sst.N_PRODUCE, this_city.production, []);
+          this_city.demand = [];
+          $scope.unique_random($scope.sst.N_ITEM_TYPES, $scope.sst.N_DEMAND, this_city.demand, this_city.production);
+        }
+      }
+
+      $scope.set_production_depletion_rates = function() {
+        /* Random */
+        for (let i=0; i<$scope.sst.N_CITIES; i++) {
+          let this_city = $scope.sst.city_randoms[i];
+          this_city.production_rates = [];
+          for (let j=0; j<$scope.sst.N_PRODUCE; j++) {
+            this_city.production_rates[j] = Math.random();
+          }
+          this_city.demand_rates = [];
+          for (let j=0; j<$scope.sst.N_DEMAND; j++) {
+            this_city.demand_rates[j] = Math.random();
+          }
+        }
+      }
+
+      $scope.set_city_locations = function() {
+        for (let i=0; i<$scope.sst.N_CITIES; i++) {
+          let bad_placement = true;
+          let max = 0;
+          while (bad_placement && max < 20) {
+            max++;
+            $scope.sst.city_randoms[i].x = Math.random() * $scope.sst.MAP_SIZE.X;
+            $scope.sst.city_randoms[i].y = Math.random() * $scope.sst.MAP_SIZE.Y;
+            bad_placement = false;
+            for (let j=0; j<i; j++) {
+              let dx = $scope.sst.city_randoms[i].x - $scope.sst.city_randoms[j].x;
+              let dy = $scope.sst.city_randoms[i].y - $scope.sst.city_randoms[j].y;
+              let dist = Math.sqrt(dx*dx + dy*dy);
+              if (dist < $scope.sst.MIN_RADIUS_PLACEMENT) {
+                bad_placement = true;
+                break;
+              }
+            }
+          }
+          if (max >= 20) {
+            return 0;
+          }
+        }  
+        return 1;
+      }
+      
+      $scope.city_summary = function() {
+        let summary = "";
+        for (let i=0; i<$scope.sst.N_CITIES; i++) {
+          summary += $scope.sst.city_randoms[i].name + "\n";
+          summary += "   Supplies: ";
+          for (let j=0; j<$scope.sst.N_PRODUCE; j++) {
+          	summary += $scope.sst.item_names[$scope.sst.city_randoms[i].production[j]] + ", ";
+        	 }
+        	 summary = summary.substring(0, summary.length - 2)+ "\n";
+          summary += "   Demands: ";
+          for (let j=0; j<$scope.sst.N_PRODUCE; j++) {
+          	summary += $scope.sst.item_names[$scope.sst.city_randoms[i].demand[j]] + ", ";
+        	 }
+        	 summary = summary.substring(0, summary.length - 2)+ "\n";        	           
+        }
+        alert(summary);
+      }
+
+      $scope.sst.city_names = ['Braxton', 'Hale', 'Manchester', 'Pullman', 'Westboro', 'Colville', 'Loomis', 'Quincy'];
+      $scope.sst.city_randoms = [];
+      $scope.sst.item_names = ["Steel", "Iron Ore", "Wool", "Wheat Grain", "Flour", "Bread", "Cattle", "Coal", "Rice", "Tools", "Milk", "Cheese", "Oranges", "Meat", "Cloth", "Clothing", "Corn", "Lumber", "Bananas", "Fish"];
+      $scope.sst.N_CITIES = $scope.sst.city_names.length;
+      $scope.sst.N_ITEM_TYPES = $scope.sst.item_names.length;
+      $scope.sst.N_PRODUCE = 4;
+      $scope.sst.N_DEMAND = 4;
+      $scope.sst.MAP_SIZE = {};
+      $scope.sst.MAP_SIZE.X = 202;
+      $scope.sst.MAP_SIZE.Y = 290;
+      $scope.sst.MIN_RADIUS_PLACEMENT = 40;
+      $scope.sst.fixed_items = ["Passengers", "Mail"];
+      $scope.sst.tick = 0;
+      
+      $scope.init_city_randoms();
+      $scope.set_production_depletion_rates();
+
+      if (!$scope.set_city_locations()) {
+        alert("failed to set city locations");
+      }      
+      $scope.city_summary();
+      
+      $scope.get_xy = function(mile_post) {
+        let screen_post = mile_post / $scope.sst.to_miles;
+        let leg1 = {};
+        let leg2 = {};
+        for (let i=0; i<$scope.sst.route.length; i++) {
+          if (screen_post < $scope.sst.route[i].total_dist) {
+            leg1 = $scope.sst.route[i];
+            leg2 = $scope.sst.route[i+1];
+          }
+        } 
+        let x1 = leg1.point[0];
+        let y1 = leg1.point[1];
+        let x2 = leg2.point[0];
+        let y2 = leg2.point[1];
+        alert( x1 + ',' + y1 + '/' + x2 + ',' + y2);
+        let span = leg1.leg_dist;
+        let sub_segment = leg1.total_dist - screen_post;
+        let segment_ratio = sub_segment / span;
+        let xdiff = x1 - x2;
+
+        let ydiff = y1 - y2;
+        let ybingo = 0.0;
+        let xbingo = 0.0;
+        ybingo = y1 + ydiff * segment_ratio;
+        xbingo = x1 + xdiff * segment_ratio;
+        return ([xbingo, ybingo]);
+      }
+                   
+     });
+
+  </script>
+</body>
+</html>
