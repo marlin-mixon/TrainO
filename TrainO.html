@@ -154,8 +154,8 @@
           let max = 0;
           while (bad_placement && max < 20) {
             max++;
-            $scope.sst.city_randoms[i].x = Math.random() * $scope.sst.MAP_SIZE.X;
-            $scope.sst.city_randoms[i].y = Math.random() * $scope.sst.MAP_SIZE.Y;
+            $scope.sst.city_randoms[i].x = Math.random() * ($scope.sst.MAP_SIZE.X - 10) + 5;
+            $scope.sst.city_randoms[i].y = Math.random() * ($scope.sst.MAP_SIZE.Y - 10) + 5;
             bad_placement = false;
             for (let j=0; j<i; j++) {
               let dx = $scope.sst.city_randoms[i].x - $scope.sst.city_randoms[j].x;
