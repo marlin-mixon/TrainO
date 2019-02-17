@@ -72,7 +72,8 @@
       <text ng-attr-x="{{city_random.x + 2}}" ng-attr-y="{{city_random.y}}" class="small">{{sst.city_names[$index]}}</text>
     </g>
     <g ng-repeat="route in sst.routes">
-      <path ng-attr-m="M {{sst.city_randoms[route.city1].x}} {{sst.city_randoms[route.city1].y}} L {{sst.city_randoms[route.city2].x}} {{sst.city_randoms[route.city2].y}}">
+      <path ng-attr-d="M {{sst.city_randoms[route.city1].x}} {{sst.city_randoms[route.city1].y}} L {{sst.city_randoms[route.city2].x}} {{sst.city_randoms[route.city2].y}}"
+       fill="transparent" stroke="black">
     </g>
   </g>
   
