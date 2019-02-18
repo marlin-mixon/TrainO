@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+	<!DOCTYPE html>
 <html>
 <head>
   <title>TrainO</title>
@@ -213,15 +213,25 @@
         alert(summary);
       }
       
+      $scope.place_engine = function(track, track_dist, speed) {
+        $scope.sst.engines.push({track: track, track_dist: track_dist, rate: speed});
+      }
+      
       $scope.main_loop = function() {
 			$scope.sst.tick++;
 			for (let i=0; i<$scope.sst.engines; i++) {
 			  let engine = $scope.sst.engines[i]; 
 			  // move
 			  engine.track_dist += engine.rate;
-			  if (engine.track_dist >= $scope.tracks[engine.track].length) {
-			    engine.rate = 0;
+			  if (engine.track_dist >= $scope.tracks[engine.track].length) {  // TODO: This should be replaced by routes.
+			  	 engine.track_dist = $scope.tracks[engine.track].length;
+			    engine.rate = -engine.rate;   // TODO: handle turn-around time
+			  } else if (engine.track_dist <= 0.0) {
+			    engine.track_dist = 0;
+			    engine.rate = -engine.rate;   // TODO: handle turn-around time
 			  }
+			  let point = $scope.get_xy();
+			  engine.x = point.x;
 			}
       }
 
@@ -230,6 +240,7 @@
       $scope.sst.item_names = ["Steel", "Iron Ore", "Wool", "Wheat Grain", "Flour", "Bread", "Cattle", "Coal", "Rice", "Tools", "Milk", "Cheese", "Oranges", "Meat", "Cloth", "Clothing", "Corn", "Lumber", "Bananas", "Fish"];
       $scope.sst.N_CITIES = $scope.sst.city_names.length;
       $scope.sst.engines = [];
+      $scope.place_engine(0, 0, 0.01);
       $scope.sst.tracks = [];
       
       $scope.sst.N_ITEM_TYPES = $scope.sst.item_names.length;
@@ -276,7 +287,7 @@
         let xbingo = 0.0;
         ybingo = y1 + ydiff * segment_ratio;
         xbingo = x1 + xdiff * segment_ratio;
-        return ([xbingo, ybingo]);
+        return ({x:xbingo, y:ybingo});
       }
                    
      });
