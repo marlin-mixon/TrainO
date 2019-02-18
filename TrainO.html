@@ -71,9 +71,8 @@
       <ellipse ng-attr-cx="{{city_random.x}}" ng-attr-cy="{{city_random.y}}" rx="1" ry="1" />
       <text ng-attr-x="{{city_random.x + 2}}" ng-attr-y="{{city_random.y}}" class="small">{{sst.city_names[$index]}}</text>
     </g>
-    <g ng-repeat="route in sst.routes">
-      <path ng-attr-d="M {{sst.city_randoms[route.city1].x}} {{sst.city_randoms[route.city1].y}} L {{sst.city_randoms[route.city2].x}} {{sst.city_randoms[route.city2].y}}"
-       fill="transparent" stroke="black">
+    <g ng-repeat="track in sst.tracks">
+      <path ng-attr-d="{{build_svg_path_d(track.waypoints)}}" fill="transparent" stroke="black">
     </g>
   </g>
   
@@ -93,6 +92,12 @@
     
     app.controller("mainCtrl", function($scope) {
       $scope.sst = {};
+      
+      $scope.get_dist = function(x1, y1, x2, y2) {
+        let dx = x1 - x2;
+        let dy = y1 - y2;
+        return dist = Math.sqrt(dx*dx + dy*dy);
+      }
 
       $scope.unique_random = function(range, array_size, array, array2) {  // array2 is required but set to [] if not needed
         if (range < (array_size + array2.length) ){
@@ -137,16 +142,33 @@
         }
       }
       
-      $scope.set_route = function(city1, city2) {
-        for (let i=0; i<$scope.sst.routes.length; i++) {
-          let this_route = $scope.sst.routes[i];
-          if ((this_route.city1 === city1 && this_route.city2 === city2)|| (this_route.city2 === city1 && this_route.city1 === city2)) {
-            alert('Route ' + city1 + ' to ' + city2 + ' is already established');
+      $scope.build_svg_path_d = function(points) {
+        let d = "M " + points[0].x + " " + points[0].y + " L ";
+        for (let i = 1; i<points.length; i++) {
+        	 d += points[i].x + " " + points[i].y + " ";
+        }
+        return d;
+      }
+      
+      $scope.set_track_straight = function(city1, city2) {
+        for (let i=0; i<$scope.sst.tracks.length; i++) {
+          let this_track = $scope.sst.tracks[i];
+          if ((this_track.city1 === city1 && this_track.city2 === city2)|| (this_track.city2 === city1 && this_track.city1 === city2)) {
+            alert('Tracks between ' + city1 + ' to ' + city2 + ' is already established');
             return 0;
           }
         }
-        let new_route = {city1: city1, city2: city2};
-        $scope.sst.routes.push(new_route);
+        let x1 = $scope.sst.city_randoms[city1].x;
+        let y1 = $scope.sst.city_randoms[city1].y;
+        let x2 = $scope.sst.city_randoms[city2].x;
+        let y2 = $scope.sst.city_randoms[city2].y;
+        
+        let new_track = {city1: city1, city2: city2};
+        
+        new_track.waypoints = [{x: x1, y: y1},
+                                   {x: x2, y: y2}];
+        new_track.total_dist = $scope.get_dist(x1, y1, x2, y2);
+        $scope.sst.tracks.push(new_track);
       }
 
       $scope.set_city_locations = function() {
@@ -159,9 +181,7 @@
             $scope.sst.city_randoms[i].y = Math.random() * ($scope.sst.MAP_SIZE.Y - 10) + 5;
             bad_placement = false;
             for (let j=0; j<i; j++) {
-              let dx = $scope.sst.city_randoms[i].x - $scope.sst.city_randoms[j].x;
-              let dy = $scope.sst.city_randoms[i].y - $scope.sst.city_randoms[j].y;
-              let dist = Math.sqrt(dx*dx + dy*dy);
+              let dist = $scope.get_dist($scope.sst.city_randoms[i].x, $scope.sst.city_randoms[i].y, $scope.sst.city_randoms[j].x, $scope.sst.city_randoms[j].y)
               if (dist < $scope.sst.MIN_RADIUS_PLACEMENT) {
                 bad_placement = true;
                 break;
@@ -192,13 +212,26 @@
         }
         alert(summary);
       }
+      
+      $scope.main_loop = function() {
+			$scope.sst.tick++;
+			for (let i=0; i<$scope.sst.engines; i++) {
+			  let engine = $scope.sst.engines[i]; 
+			  // move
+			  engine.track_dist += engine.rate;
+			  if (engine.track_dist >= $scope.tracks[engine.track].length) {
+			    engine.rate = 0;
+			  }
+			}
+      }
 
       $scope.sst.city_names = ['Braxton', 'Hale', 'Manchester', 'Pullman', 'Westboro', 'Colville', 'Loomis', 'Quincy'];
       $scope.sst.city_randoms = [];
       $scope.sst.item_names = ["Steel", "Iron Ore", "Wool", "Wheat Grain", "Flour", "Bread", "Cattle", "Coal", "Rice", "Tools", "Milk", "Cheese", "Oranges", "Meat", "Cloth", "Clothing", "Corn", "Lumber", "Bananas", "Fish"];
       $scope.sst.N_CITIES = $scope.sst.city_names.length;
-      $scope.sst.routes = [];
-      $scope.set_route(0,1);
+      $scope.sst.engines = [];
+      $scope.sst.tracks = [];
+      
       $scope.sst.N_ITEM_TYPES = $scope.sst.item_names.length;
       $scope.sst.N_PRODUCE = 4;
       $scope.sst.N_DEMAND = 4;
@@ -215,22 +248,23 @@
       if (!$scope.set_city_locations()) {
         alert("failed to set city locations");
       }      
+      $scope.set_track_straight(0,1);
       $scope.city_summary();
+      setInterval($scope.main_loop, 200);
       
-      $scope.get_xy = function(mile_post) {
-        let screen_post = mile_post / $scope.sst.to_miles;
+      $scope.get_xy = function(track, screen_dist) {
         let leg1 = {};
         let leg2 = {};
-        for (let i=0; i<$scope.sst.route.length; i++) {
-          if (screen_post < $scope.sst.route[i].total_dist) {
-            leg1 = $scope.sst.route[i];
-            leg2 = $scope.sst.route[i+1];
+        for (let i=0; i<track.waypoints.length - 1; i++) {
+          if (screen_dist < track.total_dist) {
+            leg1 = $scope.sst.track.waypoints[i];
+            leg2 = $scope.sst.track.waypoints[i+1];
           }
         } 
-        let x1 = leg1.point[0];
-        let y1 = leg1.point[1];-
-        let x2 = leg2.point[0];
-        let y2 = leg2.point[1];
+        let x1 = leg1.x;
+        let y1 = leg1.y;
+        let x2 = leg2.x;
+        let y2 = leg2.y;
         alert( x1 + ',' + y1 + '/' + x2 + ',' + y2);
         let span = leg1.leg_dist;
         let sub_segment = leg1.total_dist - screen_post;
@@ -249,4 +283,4 @@
 
   </script>
 </body>
-</html>-
+</html>
