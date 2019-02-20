@@ -1,4 +1,4 @@
-	<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
   <title>TrainO</title>
@@ -21,8 +21,85 @@
    id="svg8"
    inkscape:version="0.92.1 r15371"
    sodipodi:docname="new_traino.svg">
-  <defs
-     id="defs2" />
+  <defs id="defs2">
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient4621">
+    <stop
+       style="stop-color:#1a1a1a;stop-opacity:1;"
+       offset="0"
+       id="stop4497" />
+    <stop
+       style="stop-color:#1a1a1a;stop-opacity:0;"
+       offset="1"
+       id="stop4499" />
+   </linearGradient>
+  	<g
+       transform="matrix(0.07594997,0,0,0.07594997,0,0)"
+       id="engine">
+      <rect
+         y="114.62624"
+         x="39.507156"
+         height="43.928146"
+         width="21.430294"
+         id="rect3680-6"
+         style="fill:url(#linearGradient4621);fill-opacity:1;stroke:#000000;stroke-width:0.098;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+      <rect
+         y="158.55438"
+         x="34.69669"
+         height="27.79603"
+         width="31.003265"
+         id="rect3682-2"
+         style="fill:#6e716e;fill-opacity:1;stroke:#050000;stroke-width:0.16500001;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+      <rect
+         y="119.96303"
+         x="60.783539"
+         height="11.579324"
+         width="4.1365209"
+         id="rect4507-9"
+         style="fill:#6f6b6a;fill-opacity:1;stroke:#000000;stroke-width:0.06534843;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+      <rect
+         y="120.24654"
+         x="35.23518"
+         height="11.579324"
+         width="4.1365209"
+         id="rect4507-3-1"
+         style="fill:#6f6b6a;fill-opacity:1;stroke:#000000;stroke-width:0.06534843;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+      <ellipse
+         ry="4.3467264"
+         rx="4.0632439"
+         cy="122.22382"
+         cx="50.025143"
+         id="path4524-2"
+         style="fill:#6f6b6a;fill-opacity:1;stroke:#000000;stroke-width:0.098;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+      <ellipse
+         ry="2.6648846"
+         rx="2.4758959"
+         cy="122.03484"
+         cx="50.025143"
+         id="path4524-6-7"
+         style="fill:#0b0a0a;fill-opacity:1;stroke:#000000;stroke-width:0.05989821;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+      <path
+         sodipodi:nodetypes="cccc"
+         inkscape:connector-curvature="0"
+         id="path4541-0"
+         d="m 46.905329,152.88474 v 5.66964 H 35.755024 Z"
+         style="fill:#99d2df;fill-opacity:1;stroke:#000000;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <path
+         sodipodi:nodetypes="cccc"
+         inkscape:connector-curvature="0"
+         id="path4541-7-9"
+         d="m 53.7845,152.88474 v 5.66964 h 11.150311 z"
+         style="fill:#99d2df;fill-opacity:1;stroke:#000000;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <rect
+         y="152.84326"
+         x="46.905331"
+         height="5.7111182"
+         width="6.8035712"
+         id="rect4558-3"
+         style="fill:#99d2df;fill-opacity:1;stroke:#000000;stroke-width:0.09378048;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+    </g>  
+  </defs>
   <sodipodi:namedview
      id="base"
      pagecolor="#ffffff"
@@ -73,6 +150,12 @@
     </g>
     <g ng-repeat="track in sst.tracks">
       <path ng-attr-d="{{build_svg_path_d(track.waypoints)}}" fill="transparent" stroke="black">
+    </g>
+    <g>
+      <text x="10" y="10" class="small">{{sst.engines[0].track_dist}}</text>
+    </g>
+    <g>
+    	<use xlink:href="#engine" x="0" y="0" />
     </g>
   </g>
   
@@ -219,19 +302,19 @@
       
       $scope.main_loop = function() {
 			$scope.sst.tick++;
-			for (let i=0; i<$scope.sst.engines; i++) {
+			for (let i=0; i<$scope.sst.engines.length; i++) {
 			  let engine = $scope.sst.engines[i]; 
 			  // move
 			  engine.track_dist += engine.rate;
-			  if (engine.track_dist >= $scope.tracks[engine.track].length) {  // TODO: This should be replaced by routes.
-			  	 engine.track_dist = $scope.tracks[engine.track].length;
+			  if (engine.track_dist >= $scope.sst.tracks[engine.track].length) {  // TODO: This should be replaced by routes.
+			  	 engine.track_dist = $scope.sst.tracks[engine.track].length;
 			    engine.rate = -engine.rate;   // TODO: handle turn-around time
 			  } else if (engine.track_dist <= 0.0) {
 			    engine.track_dist = 0;
 			    engine.rate = -engine.rate;   // TODO: handle turn-around time
 			  }
-			  let point = $scope.get_xy();
-			  engine.x = point.x;
+			  //let point = $scope.get_xy();
+			  //engine.x = point.x;
 			}
       }
 
