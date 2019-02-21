@@ -30,12 +30,12 @@
        offset="0"
        id="stop4497" />
     <stop
-       style="stop-color:#1a1a1a;stop-opacity:0;"
+       style="stop-color:#dadada;stop-opacity:1;"
        offset="1"
        id="stop4499" />
    </linearGradient>
   	<g
-       transform="matrix(0.07594997,0,0,0.07594997,0,0)"
+       transform="matrix(0.07594997,0,0,0.07594997,-3.9,-11)"
        id="engine">
       <rect
          y="114.62624"
@@ -155,7 +155,7 @@
       <text x="10" y="10" class="small">{{sst.engines[0].track_dist}}</text>
     </g>
     <g>
-    	<use xlink:href="#engine" x="0" y="0" />
+    	<use xlink:href="#engine" ng-attr-x="{{sst.city_randoms[0].x}}" ng-attr-y="{{sst.city_randoms[0].y}}" />
     </g>
   </g>
   
@@ -313,8 +313,10 @@
 			    engine.track_dist = 0;
 			    engine.rate = -engine.rate;   // TODO: handle turn-around time
 			  }
-			  //let point = $scope.get_xy();
-			  //engine.x = point.x;
+			  let point = $scope.get_xyth(sst.track[0]);
+			  engine.x = point.x;
+			  engine.y = point.y;
+			  engine.azimuth = point.theta * 180.0 / Math.pi;
 			}
       }
 
@@ -345,6 +347,15 @@
       $scope.set_track_straight(0,1);
       $scope.city_summary();
       setInterval($scope.main_loop, 200);
+
+		$scope.get_xyth - function(track, screen_dist) {
+		  let x = track.waypoints[0].x;
+		  let y = track.waypoints[0].y;
+		  let dy = track.waypoints[0].y - track.waypoints[1].y;
+		  let dx = track.waypoints[0].x - track.waypoints[1].x;
+		  let theta = Math.arctan2(dy, dx);
+		  return {x: x, y: y, theta: theta};
+		}
       
       $scope.get_xy = function(track, screen_dist) {
         let leg1 = {};
