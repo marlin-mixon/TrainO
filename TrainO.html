@@ -34,7 +34,7 @@
        offset="1"
        id="stop4499" />
    </linearGradient>
-  	<g
+    <g
        transform="matrix(0.07594997,0,0,0.07594997,-3.9,-11)"
        id="engine">
       <rect
@@ -155,7 +155,7 @@
       <text x="10" y="10" class="small">{{sst.engines[0].track_dist}}</text>
     </g>
     <g>
-    	<use xlink:href="#engine" ng-attr-x="{{sst.city_randoms[0].x}}" ng-attr-y="{{sst.city_randoms[0].y}}" />
+      <use xlink:href="#engine" ng-attr-x="{{sst.city_randoms[0].x}}" ng-attr-y="{{sst.city_randoms[0].y}}" />
     </g>
   </g>
   
@@ -228,7 +228,7 @@
       $scope.build_svg_path_d = function(points) {
         let d = "M " + points[0].x + " " + points[0].y + " L ";
         for (let i = 1; i<points.length; i++) {
-        	 d += points[i].x + " " + points[i].y + " ";
+           d += points[i].x + " " + points[i].y + " ";
         }
         return d;
       }
@@ -284,14 +284,14 @@
           summary += $scope.sst.city_randoms[i].name + "\n";
           summary += "   Supplies: ";
           for (let j=0; j<$scope.sst.N_PRODUCE; j++) {
-          	summary += $scope.sst.item_names[$scope.sst.city_randoms[i].production[j]] + ", ";
-        	 }
-        	 summary = summary.substring(0, summary.length - 2)+ "\n";
+            summary += $scope.sst.item_names[$scope.sst.city_randoms[i].production[j]] + ", ";
+           }
+           summary = summary.substring(0, summary.length - 2)+ "\n";
           summary += "   Demands: ";
           for (let j=0; j<$scope.sst.N_PRODUCE; j++) {
-          	summary += $scope.sst.item_names[$scope.sst.city_randoms[i].demand[j]] + ", ";
-        	 }
-        	 summary = summary.substring(0, summary.length - 2)+ "\n";        	           
+            summary += $scope.sst.item_names[$scope.sst.city_randoms[i].demand[j]] + ", ";
+           }
+           summary = summary.substring(0, summary.length - 2)+ "\n";                     
         }
         alert(summary);
       }
@@ -301,23 +301,23 @@
       }
       
       $scope.main_loop = function() {
-			$scope.sst.tick++;
-			for (let i=0; i<$scope.sst.engines.length; i++) {
-			  let engine = $scope.sst.engines[i]; 
-			  // move
-			  engine.track_dist += engine.rate;
-			  if (engine.track_dist >= $scope.sst.tracks[engine.track].length) {  // TODO: This should be replaced by routes.
-			  	 engine.track_dist = $scope.sst.tracks[engine.track].length;
-			    engine.rate = -engine.rate;   // TODO: handle turn-around time
-			  } else if (engine.track_dist <= 0.0) {
-			    engine.track_dist = 0;
-			    engine.rate = -engine.rate;   // TODO: handle turn-around time
-			  }
-			  let point = $scope.get_xyth(sst.track[0]);
-			  engine.x = point.x;
-			  engine.y = point.y;
-			  engine.azimuth = point.theta * 180.0 / Math.pi;
-			}
+      $scope.sst.tick++;
+      for (let i=0; i<$scope.sst.engines.length; i++) {
+        let engine = $scope.sst.engines[i]; 
+        // move
+        engine.track_dist += engine.rate;
+        if (engine.track_dist >= $scope.sst.tracks[engine.track].length) {  // TODO: This should be replaced by routes.
+           engine.track_dist = $scope.sst.tracks[engine.track].length;
+          engine.rate = -engine.rate;   // TODO: handle turn-around time
+        } else if (engine.track_dist <= 0.0) {
+          engine.track_dist = 0;
+          engine.rate = -engine.rate;   // TODO: handle turn-around time
+        }
+        let point = $scope.get_xy($scope.sst.tracks[0], engine.track_dist);
+        engine.x = point.x;
+        engine.y = point.y;
+        engine.azimuth = point.theta * 180.0 / Math.pi;
+      }
       }
 
       $scope.sst.city_names = ['Braxton', 'Hale', 'Manchester', 'Pullman', 'Westboro', 'Colville', 'Loomis', 'Quincy'];
@@ -348,42 +348,40 @@
       $scope.city_summary();
       setInterval($scope.main_loop, 200);
 
-		$scope.get_xyth - function(track, screen_dist) {
-		  let x = track.waypoints[0].x;
-		  let y = track.waypoints[0].y;
-		  let dy = track.waypoints[0].y - track.waypoints[1].y;
-		  let dx = track.waypoints[0].x - track.waypoints[1].x;
-		  let theta = Math.arctan2(dy, dx);
-		  return {x: x, y: y, theta: theta};
-		}
+    $scope.get_xyth - function(track, screen_dist) {
+      let x = track.waypoints[0].x;
+      let y = track.waypoints[0].y;
+      let dy = track.waypoints[0].y - track.waypoints[1].y;
+      let dx = track.waypoints[0].x - track.waypoints[1].x;
+      let theta = Math.arctan2(dy, dx);
+      return {x: x, y: y, theta: theta};
+    }
       
       $scope.get_xy = function(track, screen_dist) {
         let leg1 = {};
         let leg2 = {};
+        let sum_dist = 0;
         for (let i=0; i<track.waypoints.length - 1; i++) {
-          if (screen_dist < track.total_dist) {
-            leg1 = $scope.sst.track.waypoints[i];
-            leg2 = $scope.sst.track.waypoints[i+1];
+          leg1 = track.waypoints[i];
+          leg2 = track.waypoints[i+1];
+          let x1 = leg1.x;
+          let y1 = leg1.y;
+          let x2 = leg2.x;
+          let y2 = leg2.y; 
+          if (!track.waypoints[i].leg_dist) {
+            track.waypoints[i].leg_dist = $scope.get_dist(x1, x2, y1, y2);
           }
-        } 
-        let x1 = leg1.x;
-        let y1 = leg1.y;
-        let x2 = leg2.x;
-        let y2 = leg2.y;
-        alert( x1 + ',' + y1 + '/' + x2 + ',' + y2);
-        let span = leg1.leg_dist;
-        let sub_segment = leg1.total_dist - screen_post;
-        let segment_ratio = sub_segment / span;
-        let xdiff = x1 - x2;
-
-        let ydiff = y1 - y2;
-        let ybingo = 0.0;
-        let xbingo = 0.0;
-        ybingo = y1 + ydiff * segment_ratio;
-        xbingo = x1 + xdiff * segment_ratio;
-        return ({x:xbingo, y:ybingo});
+          if (sum_dist + track.waypoints[i].leg_dist > screen_dist) {
+            // Prorate the distance.
+            remain_dist = (screen_dist - sum_dist);
+            let ratio = remain_dist / track.waypoints[i].leg_dist;
+            let dy = y1-y2;
+            let dx = x1-x2;
+            return {x: ratio * dx, y: ratio * dy, theta: Math.atan2(dy,dx)};
+          }
+          sum_dist += track.waypoints[i].leg_dist;
+        }
       }
-                   
      });
 
   </script>
